@@ -7,7 +7,7 @@ import { observer, useLocalStore } from 'mobx-react-lite';
 configure({ enforceActions: 'observed' });
 
 class Store {
-    todos = [ 'Buy milk', 'Write book' ];
+    todos = [ 'Buy milk', 'Write book', 'Sleep' ];
 
     get todoCount() {
         return this.todos.length;
@@ -31,7 +31,7 @@ decorate(Store, {
 
 const StoreContext = createContext<Store>(new Store());
 
-const useStore = (): Store => useContext(StoreContext);
+const useStore = () => useContext(StoreContext);
 
 const AddTodo = observer(() => {
     const store = useStore();
