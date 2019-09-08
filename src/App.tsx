@@ -6,14 +6,30 @@ import { observer, useLocalStore } from 'mobx-react-lite';
 
 configure({ enforceActions: 'observed' });
 
+class Todo {
+    constructor(done: boolean, text: string) {
+        this.done = done;
+        this.text = text;
+    }
+
+    done = false;
+    text = '';
+
+    setDone = action((newDone: boolean) => (this.done = newDone));
+}
+
 class Store {
-    todos = [ 'Buy milk', 'Write book', 'Sleep' ];
+    todos = [ 'Buy milk', 'Write book', 'Sleep' ].map((text) => new Todo(false, text));
 
     get todoCount() {
         return this.todos.length;
     }
 
-    addTodo(todo: string) {
+    get openTodos() {
+        return this.todos.filter((todo) => !todo.done);
+    }
+
+    addTodo(todo: Todo) {
         this.todos.push(todo);
     }
 
@@ -25,6 +41,7 @@ class Store {
 decorate(Store, {
     todos: observable,
     todoCount: computed,
+    openTodos: computed,
     addTodo: action,
     deleteTodo: action
 });
@@ -36,10 +53,13 @@ const useStore = () => useContext(StoreContext);
 const AddTodo = observer(() => {
     const store = useStore();
     const localStore = useLocalStore(() => ({
-        text: 'New todo'
+        text: 'New todo',
+        setText: action((newText: string) => {
+            localStore.text = newText;
+        })
     }));
     const submitTodo = () => {
-        store.addTodo(localStore.text);
+        store.addTodo(new Todo(false, localStore.text));
         localStore.text = 'New todo';
     };
 
@@ -48,9 +68,9 @@ const AddTodo = observer(() => {
             <input
                 type="text"
                 value={localStore.text}
-                onChange={action((event: React.ChangeEvent<HTMLInputElement>) => {
-                    localStore.text = event.target.value;
-                })}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                    localStore.setText(event.target.value);
+                }}
                 onKeyPress={action((event: React.KeyboardEvent<HTMLInputElement>) => {
                     if (event.key === 'Enter') {
                         submitTodo();
@@ -82,29 +102,52 @@ const DeleteButton = ({ index }: DeleteButtonProps) => {
 
 const NumberOfTodos = observer(() => {
     const store = useStore();
-    return <h5>You have {store.todoCount} Todos</h5>;
+    return (
+        <div>
+            <h5>You have {store.todoCount} Todos</h5>
+            <h5>You have {store.openTodos.length} open Todos</h5>
+        </div>
+    );
 });
+
+interface TodoProps {
+    todo: Todo;
+    index: number;
+}
+
+const TodoItem = ({ todo, index }: TodoProps) => {
+    return (
+        <li className="todo">
+            <input
+                type="checkbox"
+                value={todo.done ? 1 : 0}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                    todo.setDone(event.target.checked);
+                }}
+            />
+            {todo.text} <DeleteButton index={index} />
+        </li>
+    );
+};
 
 const ListOfTodos = observer(() => {
     const store = useStore();
     return (
         <ol>
-            {store.todos.map((todo, index) => (
-                <li key={index} className="todo">
-                    {todo} <DeleteButton index={index} />
-                </li>
-            ))}
+            {store.todos.map((todo, index) => {
+                return <TodoItem key={index} todo={todo} index={index} />;
+            })}
         </ol>
     );
 });
 
 const TodoList = () => {
     return (
-        <div>
+        <React.Fragment>
             <ListOfTodos />
             <NumberOfTodos />
             <AddTodo />
-        </div>
+        </React.Fragment>
     );
 };
 
