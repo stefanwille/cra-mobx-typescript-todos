@@ -1,11 +1,11 @@
 import App from "./App";
-import Store from "./Store";
+import { Store, Todo } from "./Store";
 
 describe("Store", () => {
   it("todoCount", () => {
     const store = new Store();
     expect(store.todoCount).toBe(3);
-    store.addTodo({ done: false, text: "Test the store" });
+    store.addTodo(new Todo(false, "Test the store"));
     expect(store.todoCount).toBe(4);
     store.deleteTodo(0);
     expect(store.todoCount).toBe(3);
