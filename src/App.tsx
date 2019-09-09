@@ -6,20 +6,16 @@ import { observer, useLocalStore } from 'mobx-react-lite';
 
 configure({ enforceActions: 'observed' });
 
-class Todo {
-    constructor(done: boolean, text: string) {
-        this.done = done;
-        this.text = text;
-    }
-
-    done = false;
-    text = '';
-
-    setDone = action((newDone: boolean) => (this.done = newDone));
+interface Todo {
+    done: boolean;
+    text: string;
 }
 
 class Store {
-    todos = [ 'Buy milk', 'Write book', 'Sleep' ].map((text) => new Todo(false, text));
+    todos: Todo[] = [ 'Buy milk', 'Write book', 'Sleep' ].map((text) => ({
+        done: false,
+        text
+    }));
 
     get todoCount() {
         return this.todos.length;
@@ -59,7 +55,7 @@ const AddTodo = observer(() => {
         })
     }));
     const submitTodo = () => {
-        store.addTodo(new Todo(false, localStore.text));
+        store.addTodo({ done: false, text: localStore.text });
         localStore.text = 'New todo';
     };
 
@@ -121,9 +117,9 @@ const TodoItem = ({ todo, index }: TodoProps) => {
             <input
                 type="checkbox"
                 value={todo.done ? 1 : 0}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                    todo.setDone(event.target.checked);
-                }}
+                onChange={action((event: React.ChangeEvent<HTMLInputElement>) => {
+                    todo.done = event.target.checked;
+                })}
             />
             {todo.text} <DeleteButton index={index} />
         </li>
