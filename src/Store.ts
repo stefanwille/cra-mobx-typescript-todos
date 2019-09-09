@@ -2,16 +2,29 @@ import { configure, observable, action, computed, decorate } from "mobx";
 
 configure({ enforceActions: "observed" });
 
-interface Todo {
-  done: boolean;
-  text: string;
+export class Todo {
+  constructor(public done: boolean, public text: string) {}
+
+  setDone(newDone: boolean) {
+    this.done = newDone;
+  }
+
+  setText(newText: string) {
+    this.text = newText;
+  }
 }
 
-class Store {
-  todos: Todo[] = ["Buy milk", "Write book", "Sleep"].map(text => ({
-    done: false,
-    text
-  }));
+decorate(Todo, {
+  done: observable,
+  text: observable,
+  setDone: action,
+  setText: action
+});
+
+export class Store {
+  todos: Todo[] = ["Buy milk", "Write book", "Sleep"].map(
+    text => new Todo(false, text)
+  );
 
   get todoCount() {
     return this.todos.length;
@@ -37,5 +50,3 @@ decorate(Store, {
   addTodo: action,
   deleteTodo: action
 });
-
-export default Store;
