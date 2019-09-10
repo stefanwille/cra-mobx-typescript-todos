@@ -94,7 +94,7 @@ const NumberOfTodos = observer(() => {
   return (
     <div>
       <h5>You have {store.todoCount} Todos</h5>
-      <h5>You have {store.openTodos.length} open Todos</h5>
+      <h5>You have {store.openTodoCount} open Todos</h5>
     </div>
   );
 });
